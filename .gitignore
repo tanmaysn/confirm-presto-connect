@@ -1,0 +1,3 @@
+#node_modules getting ignored
+
+/node_modules/*
