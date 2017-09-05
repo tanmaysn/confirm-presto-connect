@@ -9,6 +9,7 @@ var bodyParser = require('body-parser');
 var morgan = require('morgan');
 var logger = require('winston');
 var prestoApi = require('../../lib/presto-api')
+var compression = require('compression');
 
 var app;
 
@@ -17,11 +18,22 @@ var start = function (cb) {
   // Configure express 
   app = express();
 
+  app.use(compression({ filter: shouldCompress }));
   app.use(morgan('common'));
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json({ type: '*/*' }));
   //app.use(express.compress());
 
+  function shouldCompress (req, res) {
+    if (req.headers['x-no-compression']) {
+      // don't compress responses with this request header
+      return false
+    }
+  
+    // fallback to standard filter function
+    return compression.filter(req, res)
+  }
+  
   logger.info('[SERVER] Initializing routes');
   require('../../app/routes/index')(app);
 
@@ -35,13 +47,15 @@ var start = function (cb) {
       res.setHeader('content-type', 'application/json');
       if (!error) {
         res.setHeader('status', 200);
+        logger.debug('sending the Data in response');
+        console.log('sending');
         res.send(data);
       } else {
         res.setHeader('status', 500);
+        //logger.debug('sending the error response');
         res.send(error);
       }
-      console.log('sent');
-      
+
     });
   });
 
