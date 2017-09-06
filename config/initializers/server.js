@@ -41,6 +41,7 @@ var start = function (cb) {
 
   app.post('/presto', function (req, res) {
 
+    console.log(req.body.query);
     var query = req.body.query;
     prestoApi.executeQuery(query, function (data, error) {
 
